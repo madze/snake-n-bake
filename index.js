@@ -1,6 +1,8 @@
+console.log('starting up...');
 const bodyParser = require('body-parser')
 const express = require('express')
 const logger = require('morgan')
+const snake = require('./src/snake')
 const app = express()
 const {
   fallbackHandler,
@@ -8,6 +10,8 @@ const {
   genericErrorHandler,
   poweredByHandler
 } = require('./handlers.js')
+https://git.heroku.com/trowzersnake.git
+
 
 // For deployment to Heroku, the port needs to be set using ENV, so
 // we check for the port number in process.env
@@ -22,37 +26,29 @@ app.use(poweredByHandler)
 // --- SNAKE LOGIC GOES BELOW THIS LINE ---
 
 // Handle POST request to '/start'
-app.post('/start', (request, response) => {
+app.post('/start', (req, res) => {
   // NOTE: Do something here to start the game
-
+  
+  console.log('game starting with data: ', req.body);
   // Response data
-  const data = {
-    color: '#DFFF00',
-  }
+  const data = snake.trowzer();
 
-  return response.json(data)
+  return res.json(data)
 })
 
 // Handle POST request to '/move'
-app.post('/move', (request, response) => {
+app.post('/move', (req, res) => {
   // NOTE: Do something here to generate your move
 
   // Response data
-  const data = {
-    move: 'up', // one of: ['up','down','left','right']
-  }
+  const game = req.body;
+  const data = snake.getMove(game)
 
-  return response.json(data)
+  return res.status(200).json(data)
 })
 
-app.post('/end', (request, response) => {
-  // NOTE: Any cleanup when a game is complete.
-  return response.json({})
-})
-
-app.post('/ping', (request, response) => {
-  // Used for checking if this snake is still alive.
-  return response.json({});
+app.post('/end', (req, res) => {
+  // NOTE: Do something to end the game
 })
 
 // --- SNAKE LOGIC GOES ABOVE THIS LINE ---
