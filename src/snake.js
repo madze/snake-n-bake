@@ -112,9 +112,11 @@
     const max = targets.reduce((a, b) => {
       return Math.max(a.weight, b.weight);
     })
-    return targets.find((target) => {
-      return target.weight === max
-    }).move
+    return {
+      move: targets.find((target) => {
+        return target.weight === max
+      }).move
+    }
   }
   
   //Parses our snake and preps data for better consumption
