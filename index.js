@@ -39,7 +39,7 @@ app.post('/start', (req, res) => {
 // Handle POST request to '/move'
 app.post('/move', (req, res) => {
   // NOTE: Do something here to generate your move
-
+  console.log('movement request coming in with data: ', req.body);
   // Response data
   const game = req.body;
   const data = snake.getMove(game)
