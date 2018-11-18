@@ -10,7 +10,7 @@ const {
   genericErrorHandler,
   poweredByHandler
 } = require('./handlers.js')
-https://git.heroku.com/trowzersnake.git
+//https://git.heroku.com/trowzersnake.git
 
 
 // For deployment to Heroku, the port needs to be set using ENV, so
