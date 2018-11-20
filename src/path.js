@@ -1,114 +1,267 @@
 (function(path) {
+  const debug = require('./debug-settings')
   
-  //closest coordinate to point
-  const closest = (point, coords) => {
-  
-  }
-  
-  const findObs = (a, b, game) => {
-  
-  }
-  
-  const getMoveSpaceFromDirection = (dir, fail1) => {
-    let move = ""
-    if(dir.isOne) {
-      //direction is on only one axis
-      if(dir.d[0] > 0) move = {move:"up", spaces: dir.d[0]}
-      if(dir.d[1] > 0) move = {move:"left", spaces: dir.d[1]}
-      if(dir.d[2] > 0) move = {move:"down", spaces: dir.d[2]}
-      if(dir.d[3] > 0) move = {move:"right", spaces: dir.d[3]}
-    } else {
-      //direction is on both axis
-      //TODO: make this smarter
-      if(dir.d[0] > 0 && fail1.move !== "up") move = {move:"up", spaces: dir.d[0]}
-      if(dir.d[1] > 0 && fail1.move !== "left") move = {move:"left", spaces: dir.d[1]}
-      if(dir.d[2] > 0 && fail1.move !== "down") move = {move:"down", spaces: dir.d[2]}
-      if(dir.d[3] > 0 && fail1.move !== "right") move = {move:"right", spaces: dir.d[3]}
-    }
-    return move
-  }
-  
-  const getDirection = (a,b) => {
-    const aX = a[0]
-    const aY = a[1]
-    const bX = b[0]
-    const bY = b[1]
-    const x = aX - bX
-    const y = aY - bY
-    const result = {
-      isOne: true,
-      d: [
-        0, //up
-        0, //left
-        0, //down
-        0 //right
-      ]
-    }
+  //returns path from point A to point B on grid - if more than one path it will return the shortest leg
+  exports.getDirection = (a,b,type) => {
     
-    
-    if((x  === 1) || (y === 1)) {
-      //they're only one space away
-      if(aX > bX) result.dir.d[1] = x
-      if(aX < bX) result.d[3] = x
-      if(aY < bY) result.d[0] = y
-      if(aY > bY) result.d[2] = y
-    } else {
-      //they're more than one space away
-      if(x === 0) {
-        //only along Y axis
-        if(aY < bY) {
-          result.d[0] = y
-        } else {
-          result.d[2] = y
-        }
-      } else if(y === 0) {
-        //only along x axis
-        if(aX > bX) {
-          result.d[1] = x
-        } else {
-          result.d[3] = x
-        }
+    debug.log(4,'path.getDirection - beginning with a: ', a, ' and b: ', b);
+    try{
+      const aX = a.x
+      const aY = a.y
+      const bX = b.x
+      const bY = b.y
+      const x = Math.abs(aX - bX)
+      const y = Math.abs(aY - bY)
+      let result = {
+        dir: "",
+        spaces: ""
+      }
+      
+      if(type) result.type = type
+  
+      if((x  === 1) || (y === 1)) {
+        //they're only one space away
+        result.spaces = 1
+        if(aX > bX) result.dir = "left"
+        if(aX < bX) result.dir = "right"
+        if(aY < bY) result.dir = "up"
+        if(aY > bY) result.dir = "down"
       } else {
-        //along both axis
-        result.isOne = false
-        if(aX > bX) {
-          //movement is not right
-          result.d[1] = x
-          if(aY > bY) {
-            //movement is left, down
-            result.d[2] = y
+        //they're more than one space away
+        if(x === 0) {
+          //only along Y axis
+          result.spaces = y
+          if(aY < bY) {
+            result.dir = "up"
           } else {
-            //movement is left, up
-            result.d[0] = y
+            result.dir = "down"
+          }
+        } else if(y === 0) {
+          //only along x axis
+          result.spaces = x
+          if(aX > bX) {
+            result.dir = "left"
+          } else {
+            result.dir = "right"
           }
         } else {
-          //movement is not left
-          result.d[3] = x
-          if(aY > bY) {
-            //movement is right, down
-            result.d[2] = y
+          //along both axis - return both legs
+          result = []
+          if(x > y) {
+            let leg = {
+              spaces: y
+            }
+            if(type) leg.type = type
+            if(aY > bY) {
+              leg.dir = "down"
+            } else {
+              leg.dir = "up"
+            }
+            result.push(leg)
           } else {
-            //movement is right, up
-            result.d[0] = y
+            let leg = {
+              spaces: x
+            }
+            if(type) leg.type = type
+            if(aX > bX) {
+              leg.dir = "left"
+            } else {
+              leg.dir = "right"
+            }
+            result.push(leg)
+          }
+        }
+      }
+      if(!Array.isArray(result)) result = [result]
+  
+      debug.log(3,'path getDirection - chose path: ', result);
+      
+      
+      return result;
+    } catch (err) {
+      console.error('path getDirection - error: ', err);
+    }
+  }
+  
+  //Returns path to the two closest walls to a given point
+  exports.closestWalls = (point, game) => {
+    let walls = {
+      x:{
+        type: "wall"
+      },
+      y:{
+        type: "wall"
+      }
+    }
+    
+    if(game.width - point.x === point.x) {
+      //right in the middle of board
+      walls.x.dir = "left"
+      walls.x.spaces = point.x
+    } else if (game.width - point.x < point.x) {
+      //closer to right wall
+      walls.x.dir = "right"
+      walls.x.spaces = (game.width+1) - point.x
+    } else {
+      //closer to left wall
+      walls.x.dir = "left"
+      walls.x.spaces = point.x
+    }
+  
+    if(game.height - point.y === point.y) {
+      //right in the middle of board
+      walls.y.dir = "down"
+      walls.y.spaces = point.y
+    } else if (game.height - point.y < point.y) {
+      //closer to top wall
+      walls.y.dir = "up"
+      walls.y.spaces = (game.height+1) - point.y
+    } else {
+      //closer to bottom wall
+      walls.y.dir = "down"
+      walls.y.spaces = point.y
+    }
+    
+    return walls;
+  }
+  
+  const getAllInDirection = (point, arry, dir, accumilator, type) => {
+    debug.log(4,'path getAllInDirection - beginning with direction: ', dir, ' and point: ', point, ' and array: ', arry);
+    arry.filter((item) => {
+      
+      return (
+        (dir === "up" && point.x === item.x && point.y < item.y) ||
+        (dir === "right" && point.y === item.y && point.x < item.x) ||
+        (dir === "down" && point.x === item.x && point.y > item.y) ||
+        (dir === "left" && point.y === item.y && point.x > item.x)
+      )
+      
+    }).map((item) => {
+      item.dir = dir
+      if(!item.type && type) item.type = type
+      if(dir === "up" || dir === "down") {
+        item.spaces = Math.abs(point.y - item.y)
+      } else {
+        item.spaces = Math.abs(point.x - item.x)
+      }
+      return item
+    }).forEach((item) => {
+      if(!item || item.length === 0) return
+      accumilator.push(item)
+    })
+  }
+  
+  //Returns path to closest point to given point from array of points
+  exports.getClosestFromArray = (point, array, type) => {
+    let closest = array.reduce((prev, curr) => {
+      let currSum = (Math.abs(curr.x - point.x)) + (Math.abs(curr.y - point.y))
+      let prevSum = (Math.abs(prev.x - point.x)) + (Math.abs(prev.y - point.y))
+      return currSum < prevSum ? curr : prev
+    });
+    
+    debug.log('path.getNearest - closest: ', closest);
+    if(closest.x === point.x) {
+      if(closest.y > point.y) {
+        closest.dir = "up"
+        closest.spaces = closest.y - point.y
+      } else {
+        closest.dir = "down"
+        closest.spaces = point.y - closest.y
+      }
+    } else {
+      if(closest.y === point.y) {
+        if(closest.x > point.x) {
+          closest.dir = "right"
+          closest.spaces = closest.x - point.x
+        } else {
+          closest.dir = "left"
+          closest.spaces = point.x - closest.x
+        }
+      } else{
+        //this is not in the x or y axis path of point
+        let xSpace = Math.abs(closest.x - point.x)
+        let ySpace = Math.abs(closest.y - point.y)
+        if(closest.x > point.x) {
+          //to the right
+          if(closest.y > point.y) {
+            //to the right and up
+            if(xSpace > ySpace) {
+              //more to the right
+              closest.dir = "right"
+              closest.spaces = xSpace
+            } else {
+              //more up
+              closest.dir = "up"
+              closest.spaces = ySpace
+            }
+          } else {
+            //to the right and down
+            if(xSpace > ySpace) {
+              //more to the right
+              closest.dir = "right"
+              closest.spaces = xSpace
+            } else {
+              //more down
+              closest.dir = "down"
+              closest.spaces = ySpace
+            }
+          }
+        } else {
+          //to the left
+          if(closest.y > point.y) {
+            //to the left and up
+            if(xSpace > ySpace) {
+              //more to the left
+              closest.dir = "left"
+              closest.spaces = xSpace
+            } else {
+              //more up
+              closest.dir = "up"
+              closest.spaces = ySpace
+            }
+          } else {
+            //to the left and down
+            if(xSpace > ySpace) {
+              //more to the left
+              closest.dir = "left"
+              closest.spaces = xSpace
+            } else {
+              //more down
+              closest.dir = "down"
+              closest.spaces = ySpace
+            }
           }
         }
       }
     }
-    return result;
+    debug.log('path.getNearest - closest after logic: ', closest);
+    if(!Array.isArray(closest)) closest = [closest]
+    return closest;
   }
   
-  exports.getWallDistances = (head, game) => {
-    const walls = [
-      game.width - head[1],
-      game.width - head[0],
-      head[1] - game.width,
-      head[0] - game.width
-    ]
+  exports.getAllInFourLines = (point, arry, type) => {
+    try{
+      debug.log(4,'path.getAllInFourLines - beginning with array: ', arry);
+      let result = []
+  
+      getAllInDirection(point, arry, "up", result, type)
+      getAllInDirection(point, arry, "right", result, type)
+      getAllInDirection(point, arry, "down", result, type)
+      getAllInDirection(point, arry, "left", result, type)
+      
+      debug.log(3, 'path.getAllInFourLines - result: ', result)
+      return result
+    } catch (err) {
+      console.error(': ', err);
+    }
+    
   }
   
+  
+  /*
   exports.getNearestWalls = (walls) => {
     const firstMin = Math.min.apply(null, walls)
-    const secondMin = Math.min.apply(null, walls.filter(n => n != min))
+    const secondMin = Math.min.apply(null, walls.filter(n => n != firstMin))
     const result = []
     
     if(walls[0] === firstMin) {
@@ -166,15 +319,9 @@
         spaces: secondMin
       }
     }
+    debug.log('path getNearestWalls - walls: ', result);
     return result
   }
-  
-  //direction to move to get to point
-  exports.bestMoveTo = function(head, b, snakeCoords, game) {
-    const nearestSeg = getMoveSpaceFromDirection(getDirection(head, snakeCoords[1]))
-    //TODO: know if snake segment is in the way
-    return getMoveSpaceFromDirection(getDirection(head, b, nearestSeg))
-  }
-  
+  */
   
 })( module.exports)
