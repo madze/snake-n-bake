@@ -3,10 +3,9 @@
   const board = require('./board')
   const path = require('./path')
   const moves = require('./moves')
-  const debug = require('./debug-settings')
   
   //returns our snake
-  exports.bake = (game) => {
+  snake.bake = (game) => {
     let color = '#ff8cb0'
     if(game.you.name === 'smurf') color = '#119cf3'
     if(game.you.name === 'kermit') color = '#4eb457'
@@ -20,7 +19,7 @@
   }
   
   //Returns next snake move
-  exports.slither = (game) => {
+  snake.slither = (game) => {
     console.log('snake.slither - beginning move calculations');
     return moves.getMove(game)
     //return moves.calculate(hatch(game), game)

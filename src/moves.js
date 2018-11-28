@@ -4,7 +4,6 @@
   const utils = require('./utils')
   const path = require('./path')
   const weights = require('./weights')
-  const debug = require('./debug-settings')
   const defaultMove = (game) => {
     //TODO: maybe chase tail?
     if(game.straight) {

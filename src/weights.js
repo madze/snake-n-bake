@@ -1,11 +1,10 @@
 (function(weights) {
   const utils = require('./utils')
-  const debug = require('./debug-settings')
   
   //these are the algorithms we use to calculate our weights - priority will be given to higher numbers
   
   //returns current food weights
-  exports.food = (move, game) => {
+  weights.food = (move, game) => {
     try{
       const health = game.you.health
       const max = utils.longest(game)
@@ -21,7 +20,7 @@
   }
   
   //returns current meal weights
-  exports.meals = (move, game) => {
+  weights.meals = (move, game) => {
     try{
       const max = utils.longest(game)
       let score = utils.reverseInt(1, max, move.spaces)
@@ -31,7 +30,7 @@
     }
   }
   
-  exports.tail = (move, game) => {
+  weights.tail = (move, game) => {
     try{
       const max = utils.longest(game)
       let score = move.spaces

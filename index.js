@@ -3,7 +3,6 @@ const express = require('express')
 const logger = require('morgan')
 const snake = require('./src/snake')
 const app = express()
-const debug = require('./src/debug-settings')
 const util = require('util')
 const {
   fallbackHandler,

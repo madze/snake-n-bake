@@ -1,5 +1,4 @@
 (function(path) {
-  const debug = require('./debug-settings')
   
   path.getClosest = (point, pointsArry) => {
     return pointsArry.reduce((prev, curr) => {
