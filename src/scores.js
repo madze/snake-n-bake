@@ -1,10 +1,10 @@
-(function(weights) {
+(function(scores) {
   const utils = require('./utils')
   
-  //these are the algorithms we use to calculate our weights - priority will be given to higher numbers
+  //these are the algorithms we use to calculate our scores - priority will be given to higher numbers
   
-  //returns current food weights
-  weights.food = (move, game) => {
+  //returns current food scores
+  scores.food = (move, game) => {
     try{
       const health = game.you.health
       const max = utils.longest(game)
@@ -19,18 +19,19 @@
     }
   }
   
-  //returns current meal weights
-  weights.meals = (move, game) => {
+  //returns current meal scores
+  scores.meals = (move, game) => {
     try{
       const max = utils.longest(game)
       let score = utils.reverseInt(1, max, move.spaces)
       return score
     } catch (err) {
-      console.error('weights.meals - error: ', err);
+      console.error('scores.meals - error: ', err);
     }
   }
   
-  weights.tail = (move, game) => {
+  
+  scores.tail = (move, game) => {
     try{
       const max = utils.longest(game)
       let score = move.spaces

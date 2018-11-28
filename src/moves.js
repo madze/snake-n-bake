@@ -3,7 +3,7 @@
   const util = require('util')
   const utils = require('./utils')
   const path = require('./path')
-  const weights = require('./weights')
+  const scores = require('./scores')
   const defaultMove = (game) => {
     //TODO: maybe chase tail?
     if(game.straight) {
@@ -14,6 +14,7 @@
     }
   }
   
+  //returns a move after calculations
   moves.getMove = (game) => {
     try{
       game = board.parse(game)
@@ -43,6 +44,7 @@
     }
   }
   
+  //returns a path object for continuing in the same direction
   function getStraight(game) {
     let head = game.you.head
     let neck = game.you.body[1]
@@ -61,7 +63,7 @@
     return straight
   }
   
-  
+  //returns a path object for the best move after filtering and scoring
   function getBest(moves, obs, game) {
     try{
       moves = moves.filter((move) => {
@@ -85,20 +87,21 @@
     }
   }
   
+  //returns a score for a given path object
   function getScore(move, obs, game) {
     try{
       let rawScore = 1
       let name = move.type
   
       if(move.type === 'food') {
-        rawScore = weights.food(move, game)
+        rawScore = scores.food(move, game)
       } else if (move.type === 'snake'){
-        rawScore = weights.meals(move, game)
+        rawScore = scores.meals(move, game)
       } else if (move.type === 'straight'){
       
       } else if (move.part === 'tail'){
         name = move.part
-        //rawScore = weights.tail(move, game)
+        //rawScore = scores.tail(move, game)
       }
       
       console.log(name, ' - SCORE: ', rawScore);
@@ -110,6 +113,7 @@
     
   }
   
+  //returns boolean for filtering a path object based on immediate collision potential
   function willCollide(move, obs, game) {
     try{
       console.log('MOVE TYPE: ', move.type)
@@ -127,6 +131,7 @@
     }
   }
   
+  //returns an array of modified path obejcts with additional data attached
   function parsePoints(from, points, getShorter) {
     try{
       //console.log('moves parsePoints - points length: ', points && points.length);
@@ -158,6 +163,7 @@
     }
   }
   
+  //returns boolean for filtering a path object based on immediate wall collision potential
   function isWallCollision(dir, game) {
     try{
       return dir === "up" && game.you.head.y === 0 ||

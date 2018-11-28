@@ -1,5 +1,6 @@
 (function(path) {
   
+  //returns closest point to a given point from an array of points
   path.getClosest = (point, pointsArry) => {
     return pointsArry.reduce((prev, curr) => {
       let currSum = (Math.abs(curr.x - point.x)) + (Math.abs(curr.y - point.y))
@@ -8,6 +9,7 @@
     })
   }
   
+  //returns a path object for a given point to another point
   path.getPaths = (a,b, getShorter) => {
     //console.log('path.getPaths - a: ', a, ' and b: ', b);
     let result = []
@@ -87,6 +89,8 @@
     return result
   }
   
+  //returns a boolean that determines if a given direction from a given point will be a dead end
+  //TODO: make more intelligent - right now this just evaluates for obstacles one space away from the path
   path.isTrap = (point, dir, obs, width, height) => {
     try{
       let spaces = getSpaces()

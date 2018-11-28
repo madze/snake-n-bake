@@ -2,7 +2,7 @@
   const util =require('util')
   const utils = require('./utils')
   
-  
+  //returns the game object with parsed data attached
   board.parse = (game) => {
     try{
       console.log('---------- TURN: ', game.turn, ' \'', game.you.name, '\' Snake - HEALTH: ', game.you.health, ' - LENGTH: ', game.you.body.length, ' ---------');
@@ -72,6 +72,7 @@
     }
   }
   
+  //returns an array of points representing either food or snakes that can be eaten
   board.parseFood = (game) => {
     if(!game.board.food) return []
     return game.board.food.map((f) => {
@@ -81,6 +82,7 @@
     })
   }
   
+  //returns an array of points representing all other snake segments on the board that we might be able to collide with
   board.parseSnakes = (game) => {
     const snakes = []
     if(!game.board.snakes) return []
@@ -101,6 +103,7 @@
     return snakes.reverse()
   }
   
+  //returns an array of points representing our snake
   board.parseBake = (game) => {
     return game.you.body.map((seg, i) => {
       if(i === 0) {
