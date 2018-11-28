@@ -35,3 +35,5 @@ npm-console.log
 
 *.env
 
+.idea/
+.idea/workspace.xml
