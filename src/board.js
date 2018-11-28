@@ -19,9 +19,9 @@
       game.points = game.points.concat(food).concat(bake).concat(snakes)
   
       //console.log('board.parse - points: ', util.inspect(points, {depth:3}));
-      game.boardArry = createBoardMapArray(game.points, game.board.height, game.board.width)
+      let boardArry = createBoardMapArray(game.points, game.board.height, game.board.width)
       
-      console.dir(game.boardArry);
+      console.dir(boardArry);
   
       game.you.head = game.you.body[0]
       
