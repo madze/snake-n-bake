@@ -8,12 +8,6 @@
       console.log('---------- TURN: ', game.turn, ' \'', game.you.name, '\' Snake - HEALTH: ', game.you.health, ' - LENGTH: ', game.you.body.length, ' ---------');
       
       console.log('board.parse - beginning with state: ', util.inspect(game, {depth:5}));
-      
-      game.boardArry = []
-  
-      for(let i = 0; i < game.board.height; i++) {
-        game.boardArry.push(rowGen())
-      }
   
       game.points = []
       const food = board.parseFood(game)
@@ -22,53 +16,19 @@
       //console.log('board.parse - bake: ', bake);
       const snakes = board.parseSnakes(game)
       //console.log('board.parse - snakes: ', snakes);
-      game.points = game.points.concat(food)
-      game.points = game.points.concat(bake)
-      game.points = game.points.concat(snakes)
+      game.points = game.points.concat(food).concat(bake).concat(snakes)
   
       //console.log('board.parse - points: ', util.inspect(points, {depth:3}));
-  
-      game.points.forEach((point) => {
-        let marker;
-        if(point.type === 'food') {
-          marker = 4
-        } else if (point.type === 'you') {
-          if(point.part === 'head') {
-            marker = 1
-          } else {
-            marker = 5
-          }
-        } else if (point.type === 'snake') {
-          if(point.part === 'head') {
-            if(point.meal) {
-              marker = 2
-            } else {
-              marker = 3
-            }
-          } else {
-            marker = 5
-          }
-        }
-        return game.boardArry[point.y][point.x] = marker
-      })
-  
+      game.boardArry = createBoardMapArray(game.points, game.board.height, game.board.width)
+      
       console.dir(game.boardArry);
   
       game.you.head = game.you.body[0]
       
       return game
       
-      
-      function rowGen() {
-        let boardRow = []
-        for(let i = 0; i < game.board.width; i ++) {
-          boardRow.push(0)
-        }
-        return boardRow
-      }
-      
     } catch (err) {
-      console.error('board.parse top level error: ', err);
+      console.error('board.parse - error: ', err);
     }
   }
   
@@ -118,6 +78,53 @@
       return seg
     }).reverse()
     
+  }
+  
+  //returns an array map of current game state for logging to console
+  function createBoardMapArray(points, height, width) {
+    try{
+      arry = []
+  
+      for(let i = 0; i < height; i++) {
+        arry.push(rowGen())
+      }
+  
+      points.forEach((point) => {
+        let marker;
+        if(point.type === 'food') {
+          marker = 4
+        } else if (point.type === 'you') {
+          if(point.part === 'head') {
+            marker = 1
+          } else {
+            marker = 5
+          }
+        } else if (point.type === 'snake') {
+          if(point.part === 'head') {
+            if(point.meal) {
+              marker = 2
+            } else {
+              marker = 3
+            }
+          } else {
+            marker = 5
+          }
+        }
+        return arry[point.y][point.x] = marker
+      })
+  
+      function rowGen() {
+        let boardRow = []
+        for(let i = 0; i < width; i ++) {
+          boardRow.push(0)
+        }
+        return boardRow
+      }
+  
+      return arry
+    } catch (err) {
+      console.error('board createBoardMapArray - error: ', err);
+    }
   }
   
 })(module.exports)
