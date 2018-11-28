@@ -1,106 +1,172 @@
 (function(moves) {
+  const board = require('./board')
+  const util = require('util')
+  const utils = require('./utils')
   const path = require('./path')
   const weights = require('./weights')
   const debug = require('./debug-settings')
-  
-  //This is our default move this turn (will do this if can't find any other options)
-  const defaultMove = (snake, game) => {
+  const defaultMove = (game) => {
     //TODO: maybe chase tail?
-    
-    return {dir: snake.straight, type: "default"}
-  }
-  
-  //This parses moves based on direction and assigns them to choices accordingly
-  const parsePathsFromMoves = (moves, choices) => {
-    try{
-      debug.log(4,'moves.parsePathsFromMoves - beginning with moves: ', moves, ' and choices: ', choices);
-      if(!moves || moves.length === 0) return;
-      
-      moves.forEach((move) => {
-        debug.log('move: ', move);
-        choices[move.dir].push(move)
-      })
-      
-      debug.log(3,'moves.parsePathsFromMoves - finished with choices: ', choices);
-    } catch (err) {
-      console.error('moves.parsePathsFromMoves - error: ', err);
-    }
-  }
-  
-  //returns the obs in a single direction that is 1 space away
-  const willCollide = (obs) => {
-    if(!obs || obs.length === 0) return false
-    return !!obs.find((o) => o.spaces === 1)
-  }
-  
-  //returns one move from all four direction path arrays
-  const getBestMoveFromChoices = (moves, wts, snake, game) => {
-    debug.log(5,'moves getBestMoveFromChoices - beginning with moves: ', moves);
-    debug.log(5,'moves getBestMoveFromChoices - beginning with weights: ', wts);
-    
-    try{
-      
-      // 1. remove any choices that are immediate collisions
-      let filteredMoves = moves.filter((move) => {
-        let obs = getObsByDir(move.dir)
-        return !willCollide(obs) && move.dir !== snake.neck.dir
-      })
-  
-      debug.log(4,'moves getBestMoveFromChoices - moves after collision assessment: ', filteredMoves);
-  
-      // 2. narrow each remaining choice to just one
-      let finalMove = filteredMoves.reduce((prev, curr) => {
-        return calcScore(curr).score > prev.score ? curr : prev
-      })
-      
-      function getObsByDir(dir) {
-        return snake.obs.filter((o) => o.dir === dir)
-      }
-      
-      function calcScore(move) {
-        move.score = weights.weightCalc(move, wts, getObsByDir(move.dir), game)
-        return move
-      }
-      
-      if(!finalMove && !finalMove.dir) finalMove = defaultMove(snake, game)
-      
-      debug.log(2,'moves getBestMoveFromChoices - final move: ', finalMove);
-  
+    if(game.straight) {
       return {
-        move: finalMove.dir
+        dir: game.straight,
+        type: "straight"
+      }
+    }
+  }
+  
+  moves.getMove = (game) => {
+    try{
+      game = board.parse(game)
+      
+      game.straight = getStraight(game)
+      
+      const allMoves = parsePoints(game.you.head, game.points.filter((point) => point.meal))
+      //console.log('moves.getMove - moves: ', allMoves)
+      const defaultMoves = ["up", "left","down", "right"].map((dir) => {
+        return utils.createDefaultMove(dir,"default")
+      })
+      //console.log('moves.getMove - default moves: ', defaultMoves);
+      const movesForConsideration = allMoves.concat(defaultMoves)
+      console.log('moves.getMove - allMoves: ', movesForConsideration);
+      const allObs = parsePoints(
+        game.you.head,
+        game.points.filter((point) => point.obs)).filter((obs) => obs.spaces > 0,
+        true)
+      console.log('moves.getMove - obs: ', allObs);
+      const bestMove =  getBest(movesForConsideration, allObs, game)
+      console.log('moves.getMove - BEST MOVE: ', bestMove);
+      return {
+        move: bestMove.dir
       }
     } catch (err) {
-      console.error('moves getBestMoveFromChoices - error: ', err);
+      console.error('moves.getMove - error: ', err);
+    }
+  }
+  
+  function getStraight(game) {
+    let head = game.you.head
+    let neck = game.you.body[1]
+    if(neck.x === head.x && neck.y === head.y) return
+    let straight = {type:"straight"}
+    
+    if(neck.x > head.x) {
+      straight.dir = "left"
+    } else if (neck.y > head.y){
+      straight.dir = "up"
+    } else if (neck.x < head.x) {
+      straight.dir = "right"
+    } else {
+      straight.dir = "down"
+    }
+    return straight
+  }
+  
+  
+  function getBest(moves, obs, game) {
+    try{
+      moves = moves.filter((move) => {
+        return !willCollide(move, obs, game)
+      })
+      
+      if(!moves || moves.length === 0) {
+        console.warn('NOOOOOO!!!!! KABLOOIE!!');
+        return {dir:"down"}
+      }
+      console.log('FIND SCORE OUT OF: ', moves);
+      moves[0].score = getScore(moves[0], obs, game)
+      return moves.reduce((prev, curr) => {
+    
+        curr.score = getScore(curr, obs, game)
+    
+        return curr.score > prev.score ? curr : prev
+      })
+    } catch (err) {
+      console.error('moves getBest - error: ', err);
+    }
+  }
+  
+  function getScore(move, obs, game) {
+    try{
+      let rawScore = 1
+      let name = move.type
+  
+      if(move.type === 'food') {
+        rawScore = weights.food(move, game)
+      } else if (move.type === 'snake'){
+        rawScore = weights.meals(move, game)
+      } else if (move.type === 'straight'){
+      
+      } else if (move.part === 'tail'){
+        name = move.part
+        //rawScore = weights.tail(move, game)
+      }
+      
+      console.log(name, ' - SCORE: ', rawScore);
+  
+      return rawScore
+    } catch (err) {
+      console.error('moves getScore - error: ', err);
     }
     
   }
   
-  const getWeights = (snake, game) => {
-    return {
-      food: weights.food(snake, game),
-      meal: weights.meals(snake, game),
-      threat: weights.threats(snake, game)
+  function willCollide(move, obs, game) {
+    try{
+      console.log('MOVE TYPE: ', move.type)
+      let isTrap = path.isTrap(game.you.head, move.dir, obs, game.board.width, game.board.height)
+      console.log('IS TRAP: ', isTrap);
+      let isBad = obs.filter((o) => o.spaces === 1 && o.dir === move.dir).length > 0
+      console.log('IS BAD: ', isBad);
+      let isWall = isWallCollision(move.dir, game)
+      console.log('IS WALL: ', isWall);
+      let collision = isBad || isWall || isTrap
+      //console.log('moves willCollide - collision? ', collision, ' move dir: ', move.dir);
+      return collision
+    } catch (err) {
+      console.error('moves willCollide - error: ', err);
     }
   }
   
-  
-  
-  exports.calculate = (snake, game) => {
+  function parsePoints(from, points, getShorter) {
     try{
-      // 1. get an array of possible moves in each direction based on: food, meals, and threats
-      let wts = getWeights(snake, game)
+      //console.log('moves parsePoints - points length: ', points && points.length);
+      let result = []
+      if(!points || points.length === 0) return result
       
-      debug.log(2, 'moves.calculate - weights: ', wts)
-      
-      // 1. pick one move based on various criteria
-      let finalMove = getBestMoveFromChoices(snake.moves, wts, snake, game)
-      
-      debug.log(2,'moves.calculate - final move is: ', finalMove);
-      
-      return finalMove
-      
+      points.forEach((move) => {
+        let dirs = path.getPaths(from, move, getShorter)
+        //console.log('moves parsePoints - parsed path: ', dirs);
+        if(dirs.length > 1 && !move.obs) {
+          dirs.forEach((dir) => {
+            newMove = Object.assign(dir, move)
+            result.push(newMove)
+          })
+        } else {
+          move.dir = dirs[0].dir
+          move.spaces = dirs[0].spaces
+          result.push(move)
+        }
+      })
+  
+      return result.sort((a,b) => {
+        if(a.spaces > b.spaces) return 1
+        if(a.spaces < b.spaces) return -1
+        return 0
+      })
     } catch (err) {
-      console.error('moves.calculate : ', err);
+      console.error('moves parsePoints - error: ', err);
+    }
+  }
+  
+  function isWallCollision(dir, game) {
+    try{
+      return dir === "up" && game.you.head.y === 0 ||
+        dir === "right" && game.you.head.x === game.board.width - 1 ||
+        dir === "down" && game.you.head.y === game.board.height - 1 ||
+        dir === "left" && game.you.head.x === 0
+    } catch (err) {
+      console.error('moves isWallCollision - error: ', err);
     }
   }
   

@@ -13,8 +13,16 @@
   
   //returns largest board dimension
   exports.longest = (game) => {
-    if(game.width > game.height) return game.width
-    return game.height
+    if(game.board.width > game.board.height) return game.board.width
+    return game.board.height
+  }
+  
+  exports.createDefaultMove = (dir, type) => {
+    return {
+      dir: dir,
+      type: type,
+      spaces:1
+    }
   }
   
 })( module.exports)
