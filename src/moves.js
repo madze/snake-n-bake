@@ -1,5 +1,6 @@
 (function(moves) {
   const board = require('./board')
+  const boardState = require('boardstate')
   const util = require('util')
   const utils = require('./utils')
   const path = require('./path')
@@ -17,7 +18,16 @@
   //returns a move after calculations
   moves.getMove = (game) => {
     try{
-      game = board.parse(game)
+      visualizerOptions = {
+        showMySnake: true,
+        showBoard: true,
+        addPoints: true
+      };
+      game = boardState.visualize(game,visualizerOptions)
+      console.log('game: ', game);
+      game.points = game.parsedBoardPoints
+      
+      game.you.head = game.you.body[0]
       
       game.straight = getStraight(game)
       
@@ -28,12 +38,12 @@
       })
       //console.log('moves.getMove - default moves: ', defaultMoves);
       const movesForConsideration = allMoves.concat(defaultMoves)
-      console.log('moves.getMove - allMoves: ', movesForConsideration);
+      console.log('moves.getMove - allMoves: ', util.inspect(movesForConsideration));
       const allObs = parsePoints(
         game.you.head,
-        game.points.filter((point) => point.obs)).filter((obs) => obs.spaces > 0,
+        game.points.filter((point) => point.isCollision)).filter((obs) => obs.spaces > 0,
         true)
-      console.log('moves.getMove - obs: ', allObs);
+      console.log('moves.getMove - obs: ', util.inspect(allObs,{depth:5}));
       const bestMove =  getBest(movesForConsideration, allObs, game)
       console.log('moves.getMove - BEST MOVE: ', bestMove);
       return {
@@ -71,11 +81,16 @@
       })
       
       if(!moves || moves.length === 0) {
-        console.warn('NOOOOOO!!!!! KABLOOIE!!');
-        return {dir:"down"}
+        moves = [getOpenMove(obs, game)]
+        console.log('open moves: ', moves);
+        if(!moves[0].dir) {
+          console.warn('KABLOOIE!!!');
+          return {dir:"down"}
+        }
       }
+      if(moves.length === 1) return moves[0]
       console.log('FIND SCORE OUT OF: ', moves);
-      moves[0].score = getScore(moves[0], obs, game)
+      
       return moves.reduce((prev, curr) => {
     
         curr.score = getScore(curr, obs, game)
@@ -84,6 +99,25 @@
       })
     } catch (err) {
       console.error('moves getBest - error: ', err);
+    }
+  }
+  
+  //returns any open spaces to move to
+  function getOpenMove(obs, game) {
+    let move = {
+      type: 'default',
+      spaces: 1
+    }
+    
+    if(isPointOpen('up')) move.dir = 'up'
+    if(isPointOpen('right')) move.dir = 'right'
+    if(isPointOpen('down')) move.dir = 'down'
+    if(isPointOpen('left')) move.dir = 'left'
+    
+    return move
+    
+    function isPointOpen(dir) {
+      return obs.filter((o) => o.dir === dir && o.spaces === 1).length === 0 && !isWallCollision(dir, game)
     }
   }
   
@@ -101,7 +135,7 @@
       
       } else if (move.part === 'tail'){
         name = move.part
-        //rawScore = scores.tail(move, game)
+        rawScore = scores.tail(move, game)
       }
       
       console.log(name, ' - SCORE: ', rawScore);
@@ -118,11 +152,11 @@
     try{
       console.log('MOVE TYPE: ', move.type)
       let isTrap = path.isTrap(game.you.head, move.dir, obs, game.board.width, game.board.height)
-      console.log('IS TRAP: ', isTrap);
-      let isBad = obs.filter((o) => o.spaces === 1 && o.dir === move.dir).length > 0
-      console.log('IS BAD: ', isBad);
+      console.log('IS TRAP: ', isTrap)
+      let isBad = obs.filter((o) => (o.spaces === 1 && o.dir === move.dir) || (o.part === 'neck' && o.dir === move.dir)).length > 0
+      console.log('IS BAD: ', isBad)
       let isWall = isWallCollision(move.dir, game)
-      console.log('IS WALL: ', isWall);
+      console.log('IS WALL: ', isWall)
       let collision = isBad || isWall || isTrap
       //console.log('moves willCollide - collision? ', collision, ' move dir: ', move.dir);
       return collision

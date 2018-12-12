@@ -1,5 +1,6 @@
 (function(scores) {
   const utils = require('./utils')
+  const path = require('./path')
   
   //these are the algorithms we use to calculate our scores - priority will be given to higher numbers
   
@@ -9,9 +10,11 @@
       const health = game.you.health
       const max = utils.longest(game)
       
-      const hW = utils.reverseInt(1, 100, health);
+      const hW = utils.reverseInt(1, 100, health)
       
       const fW = utils.reverseInt(1, max, move.spaces)
+      
+      if(health <= move.spaces) return 1000000000
       
       return hW + fW
     } catch (err) {

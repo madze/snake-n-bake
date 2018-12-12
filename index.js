@@ -23,28 +23,35 @@ app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(poweredByHandler)
 
-// --- SNAKE LOGIC GOES BELOW THIS LINE ---
-
-// Handle POST request to '/start'
 app.post('/start', (req, res) => {
-  // NOTE: Do something here to start the game
+  try{
+    console.log('game starting with data: ', util.inspect(req.body, {depth:10}));
+    // Response data
+    const data = snake.bake(req.body)
   
-  console.log('game starting with data: ', util.inspect(req.body, {depth:10}));
-  // Response data
-  const data = snake.bake(req.body);
-
-  return res.json(data)
+    console.log('Our snake at start: ', util.inspect(data))
+  
+    return res.status(200).json(data)
+    
+  } catch (err) {
+    console.error('GAME START - Error: ', err);
+    return res.status(500)
+  }
 })
 
-// Handle POST request to '/move'
 app.post('/move', (req, res) => {
-  // NOTE: Do something here to generate your move
-  console.log('movement request coming in for turn: ', req.body.turn);
-  // Response data
-  const game = req.body;
-  const data = snake.slither(game)
-  console.log('move is: ', data);
-  return res.status(200).json(data)
+  try{
+    console.log('movement request coming in for turn: ', req.body.turn);
+    // Response data
+    const game = req.body;
+    const data = snake.slither(game)
+    console.log('move is: ', data);
+    return res.status(200).json(data)
+    
+  } catch (err) {
+    console.error('GAME MOVE - Error: ', err);
+    return res.status(500)
+  }
 })
 
 app.post('/end', (req, res) => {

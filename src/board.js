@@ -80,6 +80,14 @@
     
   }
   
+  function parseArry (arry, type) {
+    if (!arry) return []
+    return arry.map((item) => {
+      item.type = type
+      return item
+    })
+  }
+  
   //returns an array map of current game state for logging to console
   function createBoardMapArray(points, height, width) {
     try{

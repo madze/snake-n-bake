@@ -94,15 +94,15 @@
   path.isTrap = (point, dir, obs, width, height) => {
     try{
       let spaces = getSpaces()
-      console.log('isTrap SPACES: ', spaces, ' - DIR: ', dir, ' - W: ', width, ' - H: ', height, ' - X: ', point.x, ' - Y: ', point.y);
+      //console.log('isTrap SPACES: ', spaces, ' - DIR: ', dir, ' - W: ', width, ' - H: ', height, ' - X: ', point.x, ' - Y: ', point.y);
       
       if(dir === 'up') {
         let rightColObs = obs.filter((o) => o.x === point.x + 1 && point.y > o.y && o.y >= point.y - spaces)
-        console.log('isTrap A: ', rightColObs);
+        //console.log('isTrap A: ', rightColObs);
         if(point.x === 0 && rightColObs.length >= spaces) return true
     
         let leftColObs = obs.filter((o) => o.x === point.x - 1 && point.y > o.y && o.y >= point.y - spaces)
-        console.log('isTrap B: ', leftColObs);
+        //console.log('isTrap B: ', leftColObs);
         if(point.x === width - 1 && leftColObs.length >= spaces) return true
     
         //console.log('ASSESSING BOTH COLS - DIR UP - A: ', rightColObs.length, ' B: ', leftColObs.length);
@@ -111,11 +111,11 @@
       } else if(dir === 'right') {
         
         let upCols = obs.filter((o) => o.y === point.y - 1 && point.x < o.x && o.x <= point.x + spaces)
-        console.log('isTrap A: ', upCols);
+        //console.log('isTrap A: ', upCols);
         if(point.y === height - 1 && upCols.length >= spaces) return true
     
         let downCols = obs.filter((o) => o.y === point.y + 1 && point.x < o.x && o.x <= point.x + spaces)
-        console.log('isTrap B: ', downCols);
+        //console.log('isTrap B: ', downCols);
         if(point.y === 0 && downCols.length >= spaces) return true
   
         //console.log('ASSESSING BOTH COLS - DIR RIGHT A: ', upCols.length, ' B: ', downCols.length);
@@ -124,11 +124,11 @@
       } else if(dir === 'down') {
     
         let rightColObs = obs.filter((o) => o.x === point.x + 1 && point.y < o.y && o.y <= point.y + spaces)
-        console.log('isTrap A: ', rightColObs);
+        //console.log('isTrap A: ', rightColObs);
         if(point.x === 0 && rightColObs.length >= spaces) return true
     
         let leftColObs = obs.filter((o) => o.x === point.x - 1 && point.y < o.y && o.y <= point.y + spaces)
-        console.log('isTrap B: ', leftColObs);
+        //console.log('isTrap B: ', leftColObs);
         if(point.x === width - 1 && leftColObs.length >= spaces) return true
   
         //console.log('ASSESSING BOTH COLS - DIR DOWN - A: ', rightColObs.length, ' B: ', leftColObs.length);
@@ -137,11 +137,11 @@
       } else if(dir === 'left'){
     
         let upCols = obs.filter((o) => o.y === point.y - 1 && point.x > o.x && o.x >= point.x - spaces)
-        console.log('isTrap A: ', upCols);
+        //console.log('isTrap A: ', upCols);
         if(point.y === height - 1 && upCols.length >= spaces) return true
     
         let downCols = obs.filter((o) => o.y === point.y + 1 && point.x > o.x && o.x >= point.x - spaces)
-        console.log('isTrap B: ', downCols);
+        //console.log('isTrap B: ', downCols);
         if(point.y === 0 && downCols.length >= spaces) return true
   
         //console.log('ASSESSING BOTH COLS - DIR LEFT A: ', upCols.length, ' B: ', downCols.length);
@@ -152,7 +152,7 @@
       function getSpaces() {
         if(dir === 'up') {
           let pathObs = obs.filter((o) => o.x === point.x && o.y < point.y)
-          console.log('SPACES: ', pathObs.length);
+          //console.log('SPACES: ', pathObs.length);
           if(pathObs.length > 0) {
             return point.y - pathObs[0].y
           } else {
@@ -160,7 +160,7 @@
           }
         } else if (dir === 'right') {
           let pathObs = obs.filter((o) => o.y === point.y && o.x > point.x)
-          console.log('SPACES: ', pathObs.length);
+          //console.log('SPACES: ', pathObs.length);
           if(pathObs.length > 0) {
             return pathObs[0].x - point.x
           } else {
@@ -168,7 +168,7 @@
           }
         } else if (dir === 'down') {
           let pathObs = obs.filter((o) => o.x === point.x && o.y > point.y)
-          console.log('SPACES: ', pathObs.length);
+          //console.log('SPACES: ', pathObs.length);
           if(pathObs.length > 0) {
             return pathObs[0].y - point.y
           } else {
@@ -176,7 +176,7 @@
           }
         } else if(dir === 'left') {
           let pathObs = obs.filter((o) => o.y === point.y && o.x < point.x)
-          console.log('SPACES: ', pathObs.length);
+          //console.log('SPACES: ', pathObs.length);
           if(pathObs.length > 0) {
             return point.x - pathObs[0].x
           } else {
