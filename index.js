@@ -1,15 +1,18 @@
 const bodyParser = require('body-parser')
 const express = require('express')
 const logger = require('morgan')
-const snake = require('./src/snake')
 const app = express()
-const util = require('util')
 const {
   fallbackHandler,
   notFoundHandler,
   genericErrorHandler,
   poweredByHandler
 } = require('./handlers.js')
+
+const boardState = require('./src/modules/boardState')
+const Snake = require('./src/models/Snake')
+const brain = require('./src/brain')
+
 //https://git.heroku.com/trowzersnake.git
 
 console.log( 'shake-n-bake getting high...')
@@ -25,13 +28,16 @@ app.use(poweredByHandler)
 
 app.post('/start', (req, res) => {
   try{
-    console.log('game starting with data: ', util.inspect(req.body, {depth:10}));
-    // Response data
-    const data = snake.bake(req.body)
-  
-    console.log('Our snake at start: ', util.inspect(data))
-  
-    return res.status(200).json(data)
+    console.log('GAME START')
+    let gameState = boardState.visualize(req.body,{
+      addBoard:true,
+      addPoints: true
+    })
+    const snake = new Snake(gameState)
+    const bake = snake.bake
+    console.log('Our snake: ', bake)
+
+    return res.json(bake)
     
   } catch (err) {
     console.error('GAME START - Error: ', err);
@@ -41,12 +47,17 @@ app.post('/start', (req, res) => {
 
 app.post('/move', (req, res) => {
   try{
-    console.log('movement request coming in for turn: ', req.body.turn);
-    // Response data
-    const game = req.body;
-    const data = snake.slither(game)
-    console.log('move is: ', data);
-    return res.status(200).json(data)
+    console.log('GAME MOVE')
+    let gameState = boardState.visualize(req.body,{
+      addBoard:true,
+      addPoints: true
+    })
+    const snake = new Snake(gameState)
+
+    const nextMove = brain.getMove(snake, gameState)
+
+    console.log('CHOSEN MOVE: ', nextMove)
+    return res.json(nextMove)
     
   } catch (err) {
     console.error('GAME MOVE - Error: ', err);
@@ -55,10 +66,15 @@ app.post('/move', (req, res) => {
 })
 
 app.post('/end', (req, res) => {
+  console.log('GAME END')
   // NOTE: Do something to end the game
 })
 
-// --- SNAKE LOGIC GOES ABOVE THIS LINE ---
+app.post('/ping', (req, res) => {
+  console.log('PING')
+  // Used for checking if this snake is still alive.
+  return res.json({});
+})
 
 app.use('*', fallbackHandler)
 app.use(notFoundHandler)
