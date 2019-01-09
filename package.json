@@ -12,8 +12,8 @@
     }
   ],
   "dependencies": {
-    "body-parser": "^1.18.2",
-    "express": "^4.16.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
     "lodash": "^4.17.11",
     "morgan": "^1.9.1"
   },
@@ -24,7 +24,7 @@
   },
   "main": "index.js",
   "engines": {
-    "node": "10.x"
+    "node": "10.15.0"
   },
   "scripts": {
     "start": "PORT=5000 nodemon index.js",
